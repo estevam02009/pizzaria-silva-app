@@ -162,7 +162,7 @@ export default function MenuScreen({ navigation }) {
         style={styles.cartButton}
         onPress={() => navigation.navigate("Cart")}
       >
-        <Text style={{ color: "#fff", fontSize: 20 }}>🛒 Carrinho</Text>
+        <Text style={{ color: "#fff", fontSize: 20 }}>🛒</Text>
       </TouchableOpacity>
 
       <ScrollView style={styles.container}>
