@@ -7,17 +7,24 @@ import {
   TouchableOpacity,
   Linking,
   Image,
+  LayoutAnimation,
+  UIManager,
+  Platform,
   Alert,
 } from "react-native";
 import { useCart } from "../context/CartContext";
 import { useClient } from "../context/ClientContext";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
-// Número da pizzaria no formato internacional
+// Habilita LayoutAnimation no Android
+if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
 const WHATSAPP_NUMBER = "5584988962609";
 
 export default function CartScreen({ navigation }) {
-  const { cart, removeFromCart, clearCart, orderStatus, updateStatus } = useCart();
+  const { cart, removeFromCart, clearCart } = useCart();
   const { client } = useClient();
 
   const total = cart.reduce(
@@ -25,27 +32,34 @@ export default function CartScreen({ navigation }) {
     0
   );
 
-  const statusColors = {
-    pendente: "#f39c12",
-    preparo: "#3498db",
-    entrega: "#8e44ad",
-    finalizado: "#2ecc71",
-    cancelado: "#e74c3c",
-    vazio: "#95a5a6",
+  const handleRemove = (id) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    removeFromCart(id);
+  };
+
+  const handleClear = () => {
+    if (cart.length === 0) return;
+    Alert.alert("Esvaziar carrinho", "Tem certeza?", [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Esvaziar",
+        style: "destructive",
+        onPress: () => {
+          LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+          clearCart();
+        },
+      },
+    ]);
   };
 
   const enviarWhatsApp = () => {
     if (!client.name || !client.phone || !client.address) {
-      Alert.alert(
-        "Cadastro necessário",
-        "Por favor, cadastre seus dados antes de finalizar o pedido!",
-        [{ text: "OK", onPress: () => navigation.navigate("Client") }]
-      );
+      alert("Por favor, cadastre seus dados antes de finalizar o pedido!");
+      navigation.navigate("Client");
       return;
     }
-
     if (cart.length === 0) {
-      Alert.alert("Carrinho vazio", "Adicione itens antes de enviar o pedido!");
+      alert("O carrinho está vazio!");
       return;
     }
 
@@ -57,7 +71,6 @@ export default function CartScreen({ navigation }) {
 
     const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensagem)}`;
     Linking.openURL(url);
-    updateStatus("preparo"); // atualiza status para em preparo
   };
 
   const renderItem = ({ item }) => (
@@ -74,7 +87,8 @@ export default function CartScreen({ navigation }) {
 
       <TouchableOpacity
         style={styles.removeButton}
-        onPress={() => removeFromCart(item.id)}
+        onPress={() => handleRemove(item.id)}
+        activeOpacity={0.8}
       >
         <Icon name="trash-can-outline" size={24} color="#fff" />
       </TouchableOpacity>
@@ -83,10 +97,7 @@ export default function CartScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      {/* Status do pedido */}
-      <Text style={[styles.statusText, { color: statusColors[orderStatus] }]}>
-        Status do Pedido: {orderStatus.charAt(0).toUpperCase() + orderStatus.slice(1)}
-      </Text>
+      <Text style={styles.header}>🛒 Meu Carrinho</Text>
 
       {cart.length === 0 ? (
         <View style={styles.emptyBox}>
@@ -108,29 +119,14 @@ export default function CartScreen({ navigation }) {
             <TouchableOpacity
               style={styles.checkoutButton}
               onPress={enviarWhatsApp}
+              activeOpacity={0.85}
             >
-              <Text style={styles.checkoutText}>Enviar Pedido</Text>
+              <Text style={styles.checkoutText}>Finalizar Pedido</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.clearButton} onPress={clearCart}>
+            <TouchableOpacity style={styles.clearButton} onPress={handleClear} activeOpacity={0.85}>
               <Text style={styles.clearText}>Esvaziar Carrinho</Text>
             </TouchableOpacity>
-
-            {/* Botões de teste de status */}
-            <View style={styles.statusButtons}>
-              <TouchableOpacity onPress={() => updateStatus("preparo")} style={[styles.statusBtn, { backgroundColor: "#3498db" }]}>
-                <Text style={styles.statusBtnText}>Em preparo</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => updateStatus("entrega")} style={[styles.statusBtn, { backgroundColor: "#8e44ad" }]}>
-                <Text style={styles.statusBtnText}>Saiu p/ entrega</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => updateStatus("finalizado")} style={[styles.statusBtn, { backgroundColor: "#2ecc71" }]}>
-                <Text style={styles.statusBtnText}>Finalizado</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => updateStatus("cancelado")} style={[styles.statusBtn, { backgroundColor: "#e74c3c" }]}>
-                <Text style={styles.statusBtnText}>Cancelar</Text>
-              </TouchableOpacity>
-            </View>
           </View>
         </>
       )}
@@ -140,7 +136,13 @@ export default function CartScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: "#fff" },
-  statusText: { fontSize: 18, fontWeight: "bold", textAlign: "center", marginBottom: 10 },
+  header: {
+    fontSize: 26,
+    fontWeight: "bold",
+    marginBottom: 20,
+    textAlign: "center",
+    color: "#e63946",
+  },
   emptyBox: { flex: 1, justifyContent: "center", alignItems: "center" },
   empty: { fontSize: 16, textAlign: "center", marginTop: 10, color: "gray" },
   item: {
@@ -159,13 +161,27 @@ const styles = StyleSheet.create({
   name: { fontSize: 16, fontWeight: "600", color: "#333" },
   price: { fontSize: 14, color: "#555" },
   removeButton: { backgroundColor: "#e63946", padding: 8, borderRadius: 8 },
-  total: { fontSize: 20, fontWeight: "bold", marginVertical: 10, textAlign: "right", color: "#333" },
+  total: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginVertical: 10,
+    textAlign: "right",
+    color: "#333",
+  },
   footer: { borderTopWidth: 1, borderTopColor: "#ddd", paddingTop: 10 },
-  checkoutButton: { backgroundColor: "green", padding: 15, borderRadius: 12, alignItems: "center", marginBottom: 10 },
+  checkoutButton: {
+    backgroundColor: "green",
+    padding: 15,
+    borderRadius: 12,
+    alignItems: "center",
+    marginBottom: 10,
+  },
   checkoutText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
-  clearButton: { backgroundColor: "gray", padding: 12, borderRadius: 12, alignItems: "center", marginBottom: 10 },
+  clearButton: {
+    backgroundColor: "gray",
+    padding: 12,
+    borderRadius: 12,
+    alignItems: "center",
+  },
   clearText: { color: "#fff", fontSize: 14, fontWeight: "bold" },
-  statusButtons: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", marginTop: 10 },
-  statusBtn: { padding: 10, borderRadius: 8, marginVertical: 4, width: "48%", alignItems: "center" },
-  statusBtnText: { color: "#fff", fontWeight: "bold" },
 });
