@@ -9,6 +9,7 @@ import WelcomeScreen from "./screens/WelcomeScreen";
 import MenuScreen from "./screens/MenuScreen";
 import CartScreen from "./screens/CartScreen";
 import ClientScreen from "./screens/ClientScreen";
+import OrderStatusScreen from "./screens/OrderStatusScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -38,6 +39,12 @@ export default function App() {
               component={ClientScreen}
               options={{ title: "Dados do Cliente" }}
             />
+            <Stack.Screen
+              name="OrderStatus"
+              component={OrderStatusScreen}
+              options={{ title: "Status do Pedido" }}
+            />
+
           </Stack.Navigator>
         </NavigationContainer>
       </CartProvider>

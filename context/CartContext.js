@@ -4,8 +4,11 @@ const CartContext = createContext();
 
 export function CartProvider({ children }) {
   const [cart, setCart] = useState([]);
-  const [orderStatus, setOrderStatus] = useState("vazio"); // novo estado
+  const [orderStatus, setOrderStatus] = useState("vazio"); // vazio, pendente, em_preparo, saiu_entrega, cancelado, finalizado
 
+  // ----------------------
+  // Manipulação do Carrinho
+  // ----------------------
   const addToCart = (item) => {
     setCart((prev) => {
       const existing = prev.find((i) => i.id === item.id);
@@ -14,17 +17,16 @@ export function CartProvider({ children }) {
           i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
         );
       }
-      if (prev.length === 0) setOrderStatus("pendente"); // primeiro item adicionado
       return [...prev, { ...item, quantity: 1 }];
     });
+    setOrderStatus("pendente"); // assim que adiciona, já inicia como pendente
   };
 
   const removeFromCart = (id) => {
-    setCart((prev) => {
-      const newCart = prev.filter((i) => i.id !== id);
-      if (newCart.length === 0) setOrderStatus("vazio"); // carrinho vazio
-      return newCart;
-    });
+    setCart((prev) => prev.filter((i) => i.id !== id));
+    if (cart.length <= 1) {
+      setOrderStatus("vazio");
+    }
   };
 
   const clearCart = () => {
@@ -32,20 +34,36 @@ export function CartProvider({ children }) {
     setOrderStatus("vazio");
   };
 
-  // Atualizar status do pedido manualmente
-  const updateStatus = (status) => {
-    setOrderStatus(status);
+  // ----------------------
+  // Status do Pedido
+  // ----------------------
+  const updateOrderStatus = (status) => {
+    // segurança para aceitar apenas status válidos
+    const validStatuses = [
+      "vazio",
+      "pendente",
+      "em_preparo",
+      "saiu_entrega",
+      "cancelado",
+      "finalizado",
+    ];
+
+    if (validStatuses.includes(status)) {
+      setOrderStatus(status);
+    } else {
+      console.warn("Status inválido:", status);
+    }
   };
 
   return (
     <CartContext.Provider
       value={{
         cart,
+        orderStatus,
         addToCart,
         removeFromCart,
         clearCart,
-        orderStatus,
-        updateStatus,
+        updateOrderStatus,
       }}
     >
       {children}
