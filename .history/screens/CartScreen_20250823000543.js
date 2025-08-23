@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -9,8 +9,6 @@ import {
   Image,
   Linking,
   Alert,
-  Modal,
-  ScrollView,
 } from "react-native";
 import { useCart } from "../context/CartContext";
 
@@ -25,8 +23,6 @@ export default function CartScreen() {
     setCustomer,
   } = useCart();
 
-  const [modalVisible, setModalVisible] = useState(false);
-
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   const handleSendWhatsApp = () => {
@@ -40,10 +36,6 @@ export default function CartScreen() {
       return;
     }
 
-    setModalVisible(true); // abre modal de confirmação
-  };
-
-  const confirmOrder = () => {
     updateOrderStatus("pendente");
 
     let message = `🛒 *Novo Pedido*\n\n👤 Cliente: ${customer.name}\n🏠 Endereço: ${customer.address}\n📱 Telefone: ${customer.phone}\n\n`;
@@ -59,9 +51,6 @@ export default function CartScreen() {
     Linking.openURL(url).catch(() => {
       Alert.alert("Erro", "Não foi possível abrir o WhatsApp.");
     });
-
-    setModalVisible(false);
-    clearCart();
   };
 
   const renderItem = ({ item }) => (
@@ -70,10 +59,15 @@ export default function CartScreen() {
       <View style={{ flex: 1, marginLeft: 10 }}>
         <Text style={styles.itemText}>{item.name}</Text>
         <Text style={styles.itemPrice}>R$ {(item.price * item.quantity).toFixed(2)}</Text>
+
         <View style={styles.qtyContainer}>
           <TouchableOpacity
             style={styles.qtyButton}
-            onPress={() => updateItemQuantity(item.id, item.quantity - 1)}
+            onPress={() => {
+              if (item.quantity > 1) {
+                updateItemQuantity(item.id, item.quantity - 1);
+              }
+            }}
           >
             <Text style={styles.qtyText}>-</Text>
           </TouchableOpacity>
@@ -86,19 +80,20 @@ export default function CartScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
       <TouchableOpacity onPress={() => removeFromCart(item.id)}>
         <Text style={styles.remove}>Remover</Text>
       </TouchableOpacity>
     </View>
   );
 
+  // Função para atualizar quantidade no cart
   const updateItemQuantity = (id, quantity) => {
-    if (quantity < 1) return;
     const updatedCart = cart.map((item) =>
       item.id === id ? { ...item, quantity } : item
     );
-    cart.splice(0, cart.length, ...updatedCart);
     setCustomer({ ...customer }); // força renderização
+    cart.splice(0, cart.length, ...updatedCart);
   };
 
   return (
@@ -117,6 +112,7 @@ export default function CartScreen() {
 
           <Text style={styles.total}>Total: R$ {total.toFixed(2)}</Text>
 
+          {/* Campos do Cliente */}
           <TextInput
             style={styles.input}
             placeholder="Nome do cliente"
@@ -138,7 +134,7 @@ export default function CartScreen() {
           />
 
           <TouchableOpacity style={styles.button} onPress={handleSendWhatsApp}>
-            <Text style={styles.buttonText}>Verificar Pedido</Text>
+            <Text style={styles.buttonText}>Enviar Pedido via WhatsApp</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.button, styles.clear]} onPress={clearCart}>
@@ -148,39 +144,6 @@ export default function CartScreen() {
           <Text style={styles.status}>📌 Status do pedido: {orderStatus}</Text>
         </>
       )}
-
-      {/* Modal de confirmação */}
-      <Modal
-        visible={modalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Confirme seu pedido</Text>
-            <ScrollView style={{ maxHeight: 250 }}>
-              {cart.map((item) => (
-                <Text key={item.id} style={styles.modalItem}>
-                  {item.name} x{item.quantity} - R$ {(item.price * item.quantity).toFixed(2)}
-                </Text>
-              ))}
-            </ScrollView>
-            <Text style={styles.modalTotal}>Total: R$ {total.toFixed(2)}</Text>
-
-            <TouchableOpacity style={styles.modalButton} onPress={confirmOrder}>
-              <Text style={styles.modalButtonText}>✅ Confirmar Pedido</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.modalButton, { backgroundColor: "#e74c3c" }]}
-              onPress={() => setModalVisible(false)}
-            >
-              <Text style={styles.modalButtonText}>❌ Cancelar</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }
@@ -228,29 +191,4 @@ const styles = StyleSheet.create({
   clear: { backgroundColor: "#e76f51" },
   buttonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
   status: { fontSize: 16, marginTop: 20, textAlign: "center", fontWeight: "bold" },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContent: {
-    backgroundColor: "#fff",
-    width: "85%",
-    borderRadius: 12,
-    padding: 20,
-    alignItems: "center",
-  },
-  modalTitle: { fontSize: 20, fontWeight: "bold", marginBottom: 15 },
-  modalItem: { fontSize: 16, marginVertical: 3 },
-  modalTotal: { fontSize: 18, fontWeight: "bold", marginVertical: 10 },
-  modalButton: {
-    backgroundColor: "#27ae60",
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 10,
-    width: "100%",
-    alignItems: "center",
-  },
-  modalButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
 });

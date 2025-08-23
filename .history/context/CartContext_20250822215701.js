@@ -1,4 +1,3 @@
-// context/CartContext.js
 import React, { createContext, useState, useContext } from "react";
 
 const CartContext = createContext();
@@ -6,7 +5,6 @@ const CartContext = createContext();
 export function CartProvider({ children }) {
   const [cart, setCart] = useState([]);
   const [orderStatus, setOrderStatus] = useState("vazio");
-  const [customer, setCustomer] = useState({ name: "", address: "", phone: "" }); // adicionado phone
 
   const addToCart = (item) => {
     setCart((prev) => {
@@ -20,9 +18,19 @@ export function CartProvider({ children }) {
     });
   };
 
-  const removeFromCart = (id) => setCart((prev) => prev.filter((i) => i.id !== id));
-  const clearCart = () => setCart([]);
-  const updateOrderStatus = (status) => setOrderStatus(status);
+  const removeFromCart = (id) => {
+    setCart((prev) => prev.filter((i) => i.id !== id));
+  };
+
+  const clearCart = () => {
+    setCart([]);
+    setOrderStatus("vazio"); // reset status ao limpar carrinho
+  };
+
+  // 🔥 nome padronizado com o CartScreen
+  const updateOrderStatus = (status) => {
+    setOrderStatus(status);
+  };
 
   return (
     <CartContext.Provider
@@ -32,9 +40,7 @@ export function CartProvider({ children }) {
         removeFromCart,
         clearCart,
         orderStatus,
-        updateOrderStatus,
-        customer,
-        setCustomer,
+        updateOrderStatus, // ✅ função correta exportada
       }}
     >
       {children}

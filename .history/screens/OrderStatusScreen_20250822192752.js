@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useCart } from "../context/CartContext";
 
 export default function OrderStatusScreen() {
-  const { orderStatus, updateOrderStatus, startOrderFlow } = useCart();
+  const { orderStatus, updateOrderStatus } = useCart();
 
   const steps = [
     { key: "pendente", label: "Pendente" },
@@ -36,18 +36,39 @@ export default function OrderStatusScreen() {
         })}
       </View>
 
-      {/* Botão para iniciar fluxo automático */}
-      <TouchableOpacity style={styles.btn} onPress={startOrderFlow}>
-        <Text style={styles.btnText}>🚀 Iniciar Pedido</Text>
-      </TouchableOpacity>
-
-      {/* Cancelar manualmente */}
-      <TouchableOpacity
-        style={[styles.btn, { backgroundColor: "#c0392b" }]}
-        onPress={() => updateOrderStatus("cancelado")}
-      >
-        <Text style={styles.btnText}>❌ Cancelar Pedido</Text>
-      </TouchableOpacity>
+      {/* Botões para teste de mudança de status */}
+      <View style={styles.buttons}>
+        <TouchableOpacity
+          style={styles.btn}
+          onPress={() => updateOrderStatus("pendente")}
+        >
+          <Text style={styles.btnText}>🔄 Pendente</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.btn}
+          onPress={() => updateOrderStatus("em_preparo")}
+        >
+          <Text style={styles.btnText}>👨‍🍳 Em Preparo</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.btn}
+          onPress={() => updateOrderStatus("saiu_entrega")}
+        >
+          <Text style={styles.btnText}>🚚 Saiu para Entrega</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.btn}
+          onPress={() => updateOrderStatus("finalizado")}
+        >
+          <Text style={styles.btnText}>✅ Finalizado</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.btn, { backgroundColor: "#c0392b" }]}
+          onPress={() => updateOrderStatus("cancelado")}
+        >
+          <Text style={styles.btnText}>❌ Cancelado</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -69,6 +90,7 @@ const styles = StyleSheet.create({
   circleInactive: { backgroundColor: "#bdc3c7" },
   circleText: { color: "#fff", fontWeight: "bold" },
   label: { fontSize: 16 },
+  buttons: { marginTop: 20 },
   btn: {
     backgroundColor: "#3498db",
     padding: 12,

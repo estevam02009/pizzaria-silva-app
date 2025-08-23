@@ -6,7 +6,7 @@ const CartContext = createContext();
 export function CartProvider({ children }) {
   const [cart, setCart] = useState([]);
   const [orderStatus, setOrderStatus] = useState("vazio");
-  const [customer, setCustomer] = useState({ name: "", address: "", phone: "" }); // adicionado phone
+  const [customer, setCustomer] = useState({ name: "", address: "" });
 
   const addToCart = (item) => {
     setCart((prev) => {

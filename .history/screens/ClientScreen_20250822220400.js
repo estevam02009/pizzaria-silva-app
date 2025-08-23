@@ -1,6 +1,6 @@
 // screens/ClientScreen.js
 import React, { useState } from "react";
-import { View, Text, TextInput, Button, StyleSheet, Alert, Linking } from "react-native";
+import { View, Text, TextInput, Button, StyleSheet, Alert } from "react-native";
 import { useCart } from "../context/CartContext";
 
 export default function ClientScreen({ navigation }) {

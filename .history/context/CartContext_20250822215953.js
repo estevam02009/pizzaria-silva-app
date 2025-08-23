@@ -1,4 +1,3 @@
-// context/CartContext.js
 import React, { createContext, useState, useContext } from "react";
 
 const CartContext = createContext();
@@ -6,7 +5,7 @@ const CartContext = createContext();
 export function CartProvider({ children }) {
   const [cart, setCart] = useState([]);
   const [orderStatus, setOrderStatus] = useState("vazio");
-  const [customer, setCustomer] = useState({ name: "", address: "", phone: "" }); // adicionado phone
+  const [customer, setCustomer] = useState({ name: "", address: "" });
 
   const addToCart = (item) => {
     setCart((prev) => {
@@ -20,8 +19,12 @@ export function CartProvider({ children }) {
     });
   };
 
-  const removeFromCart = (id) => setCart((prev) => prev.filter((i) => i.id !== id));
+  const removeFromCart = (id) => {
+    setCart((prev) => prev.filter((i) => i.id !== id));
+  };
+
   const clearCart = () => setCart([]);
+
   const updateOrderStatus = (status) => setOrderStatus(status);
 
   return (
@@ -34,7 +37,7 @@ export function CartProvider({ children }) {
         orderStatus,
         updateOrderStatus,
         customer,
-        setCustomer,
+        setCustomer, // 🔥 agora podemos salvar nome e endereço
       }}
     >
       {children}
