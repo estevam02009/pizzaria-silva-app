@@ -12,8 +12,8 @@ import {
 import { useCart } from "../context/CartContext";
 import { useClient } from "../context/ClientContext";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-import * as Notifications from "expo-notifications";
 
+// Número da pizzaria no formato internacional
 const WHATSAPP_NUMBER = "5584988962609";
 
 export default function CartScreen({ navigation }) {
@@ -34,7 +34,7 @@ export default function CartScreen({ navigation }) {
     vazio: "#95a5a6",
   };
 
-  const enviarWhatsApp = async () => {
+  const enviarWhatsApp = () => {
     if (!client.name || !client.phone || !client.address) {
       Alert.alert(
         "Cadastro necessário",
@@ -49,32 +49,15 @@ export default function CartScreen({ navigation }) {
       return;
     }
 
-    // Atualiza status para pendente
-    updateStatus("pendente");
-
-    // Monta a mensagem do pedido
     let mensagem = `🍕 Pedido de ${client.name}\n📞 ${client.phone}\n📍 ${client.address}\n\nItens:\n`;
     cart.forEach((item) => {
       mensagem += `- ${item.quantity || 1}x ${item.name} - R$ ${item.price.toFixed(2)}\n`;
     });
-    mensagem += `\n💰 Total: R$ ${total.toFixed(2)}\n\n📌 Status: Pendente`;
+    mensagem += `\n💰 Total: R$ ${total.toFixed(2)}`;
 
-    // Abre o WhatsApp
     const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensagem)}`;
-    Linking.openURL(url).catch(() => Alert.alert("Erro", "Não foi possível abrir o WhatsApp."));
-
-    // Notificação local para o cliente
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: "Pedido Enviado!",
-        body: "Seu pedido foi enviado para a pizzaria. Status: Pendente",
-      },
-      trigger: null, // dispara imediatamente
-    });
-
-    // Limpa o carrinho após envio
-    clearCart();
-    navigation.navigate("OrderStatus");
+    Linking.openURL(url);
+    updateStatus("preparo"); // atualiza status para em preparo
   };
 
   const renderItem = ({ item }) => (
@@ -88,6 +71,7 @@ export default function CartScreen({ navigation }) {
           R$ {(item.price * (item.quantity || 1)).toFixed(2)}
         </Text>
       </View>
+
       <TouchableOpacity
         style={styles.removeButton}
         onPress={() => removeFromCart(item.id)}
@@ -99,6 +83,7 @@ export default function CartScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+      {/* Status do pedido */}
       <Text style={[styles.statusText, { color: statusColors[orderStatus] }]}>
         Status do Pedido: {orderStatus.charAt(0).toUpperCase() + orderStatus.slice(1)}
       </Text>
@@ -130,6 +115,22 @@ export default function CartScreen({ navigation }) {
             <TouchableOpacity style={styles.clearButton} onPress={clearCart}>
               <Text style={styles.clearText}>Esvaziar Carrinho</Text>
             </TouchableOpacity>
+
+            {/* Botões de teste de status */}
+            <View style={styles.statusButtons}>
+              <TouchableOpacity onPress={() => updateStatus("preparo")} style={[styles.statusBtn, { backgroundColor: "#3498db" }]}>
+                <Text style={styles.statusBtnText}>Em preparo</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => updateStatus("entrega")} style={[styles.statusBtn, { backgroundColor: "#8e44ad" }]}>
+                <Text style={styles.statusBtnText}>Saiu p/ entrega</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => updateStatus("finalizado")} style={[styles.statusBtn, { backgroundColor: "#2ecc71" }]}>
+                <Text style={styles.statusBtnText}>Finalizado</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => updateStatus("cancelado")} style={[styles.statusBtn, { backgroundColor: "#e74c3c" }]}>
+                <Text style={styles.statusBtnText}>Cancelar</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </>
       )}
@@ -164,4 +165,7 @@ const styles = StyleSheet.create({
   checkoutText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
   clearButton: { backgroundColor: "gray", padding: 12, borderRadius: 12, alignItems: "center", marginBottom: 10 },
   clearText: { color: "#fff", fontSize: 14, fontWeight: "bold" },
+  statusButtons: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", marginTop: 10 },
+  statusBtn: { padding: 10, borderRadius: 8, marginVertical: 4, width: "48%", alignItems: "center" },
+  statusBtnText: { color: "#fff", fontWeight: "bold" },
 });

@@ -14,7 +14,7 @@ import OrderStatusScreen from "./screens/OrderStatusScreen";
 import AdminOrdersScreen from "./screens/AdminOrdersScreen";
 import HomeScreen from "./screens/HomeScreen";
 import AdminLoginScreen from "./screens/AdminLoginScreen";
-import { AdminProvider, useAdmin } from "./context/AdminContext";
+import { AdminProvider } from "./context/AdminContext";
 
 
 const Stack = createNativeStackNavigator();
@@ -40,9 +40,9 @@ export default function App() {
   }, []);
 
   return (
+    <AdminProvider>
       <ClientProvider>
         <CartProvider>
-          <AdminProvider>
           <NavigationContainer>
             <Stack.Navigator screenOptions={{ headerShown: true }}>
               <Stack.Screen
@@ -87,8 +87,8 @@ export default function App() {
               />
             </Stack.Navigator>
           </NavigationContainer>
-          </AdminProvider>
         </CartProvider>
       </ClientProvider>
+    </AdminProvider>
   );
 }

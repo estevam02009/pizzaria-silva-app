@@ -40,9 +40,9 @@ export default function App() {
   }, []);
 
   return (
+    <AdminProvider>
       <ClientProvider>
         <CartProvider>
-          <AdminProvider>
           <NavigationContainer>
             <Stack.Navigator screenOptions={{ headerShown: true }}>
               <Stack.Screen
@@ -87,8 +87,8 @@ export default function App() {
               />
             </Stack.Navigator>
           </NavigationContainer>
-          </AdminProvider>
         </CartProvider>
       </ClientProvider>
+    </AdminProvider>
   );
 }

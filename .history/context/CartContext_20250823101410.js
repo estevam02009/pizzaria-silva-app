@@ -1,6 +1,5 @@
 // context/CartContext.js
 import React, { createContext, useContext, useState } from "react";
-import * as Notifications from "expo-notifications";
 
 const CartContext = createContext();
 
@@ -31,17 +30,8 @@ export const CartProvider = ({ children }) => {
     setCustomerState({ name: "", address: "", phone: "" });
   };
 
-  const updateOrderStatus = async (status) => {
+  const updateOrderStatus = (status) => {
     setOrderStatus(status);
-
-    // 🔔 dispara notificação local
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: "📢 Atualização do Pedido",
-        body: `Seu pedido agora está: ${status}`,
-      },
-      trigger: null, // dispara imediatamente
-    });
   };
 
   // ✅ Aqui fica setCustomer (igual você chamou na tela)

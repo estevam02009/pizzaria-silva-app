@@ -1,24 +1,36 @@
+// screens/ClientScreen.js
 import React, { useState } from "react";
-import { View, Text, TextInput, Button, StyleSheet, Alert } from "react-native";
+import { View, Text, TextInput, Button, StyleSheet, Alert, Linking } from "react-native";
 import { useCart } from "../context/CartContext";
 
 export default function ClientScreen({ navigation }) {
-  const { setCustomer } = useCart();
+  const { cart, clearCart, updateOrderStatus } = useCart();
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [phone, setPhone] = useState("");
 
-  const handleSaveClient = () => {
+  const sendOrder = () => {
     if (!name || !address || !phone) {
       Alert.alert("Atenção", "Por favor, preencha todos os campos!");
       return;
     }
 
-    // Salva os dados do cliente no contexto
-    setCustomer({ name, address, phone });
+    const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const orderItems = cart
+      .map((item) => `${item.quantity}x ${item.name} (R$${item.price})`)
+      .join("\n");
+      
+    updateOrderStatus("pendente");  
 
-    // Navega para o Cardápio
+    const message = `🍕 *Novo Pedido* 🍕\n\n📌 *Cliente*: ${name}\n📍 *Endereço*: ${address}\n📱 *Telefone*: ${phone}\n\n🛒 *Itens:*\n${orderItems}\n\n💰 *Total*: R$${total.toFixed(2)}`;
+
+    const phoneNumber = "5581999999999"; // coloque aqui o número da pizzaria
+    const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+
+    clearCart();
     navigation.navigate("Menu");
+
+    Linking.openURL(url);
   };
 
   return (
@@ -48,14 +60,21 @@ export default function ClientScreen({ navigation }) {
         onChangeText={setPhone}
       />
 
-      <Button title="Salvar e Continuar" onPress={handleSaveClient} />
+      <Button title="Enviar Pedido via WhatsApp" onPress={sendOrder} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20 },
-  label: { fontSize: 16, fontWeight: "bold", marginTop: 10 },
+  container: {
+    flex: 1,
+    padding: 20,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginTop: 10,
+  },
   input: {
     borderWidth: 1,
     borderColor: "#ccc",
